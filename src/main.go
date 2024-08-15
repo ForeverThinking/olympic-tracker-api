@@ -1,25 +1,46 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
-    "os"
-    "log"
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 
-    "github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
+	_ "github.com/lib/pq"
 )
 
+type Env struct {
+	db *sql.DB
+}
+
 func main() {
-    err := godotenv.Load("../.env")
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	connStr := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable",
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		os.Getenv("USER"),
+		os.Getenv("DB_NAME"))
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    test := os.Getenv("TEST")
+	env := &Env{db: db}
 
-    http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-        fmt.Fprint(w, test)
-    })
+	http.HandleFunc("/", env.countriesIndex)
+	http.ListenAndServe(":8080", nil)
+}
 
-    http.ListenAndServe(":8080", nil)
+func (env *Env) countriesIndex(w http.ResponseWriter, r *http.Request) {
+	countries, err := allCountries(env.db)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	for _, cty := range countries {
+		fmt.Fprintf(w, "%s\n", cty.Name)
+	}
 }
