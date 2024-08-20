@@ -5,12 +5,12 @@ import (
 )
 
 type Country struct {
-	Id   int
-	Name string
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func allCountries(db *sql.DB) ([]Country, error) {
-	rows, err := db.Query("SELECT * FROM countries")
+	rows, err := db.Query("SELECT * FROM countries ORDER BY id")
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -40,7 +41,5 @@ func (env *Env) countriesIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, cty := range countries {
-		fmt.Fprintf(w, "%s\n", cty.Name)
-	}
+    json.NewEncoder(w).Encode(countries)
 }
