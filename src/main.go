@@ -30,6 +30,8 @@ func main() {
 	env := &Env{db: db}
 
 	http.HandleFunc("/", env.countriesIndex)
+	http.HandleFunc("/events", env.eventsIndex)
+
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -42,4 +44,15 @@ func (env *Env) countriesIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
     json.NewEncoder(w).Encode(countries)
+}
+
+func (env *Env) eventsIndex(w http.ResponseWriter, r *http.Request) {
+	events, err := allEvents(env.db)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+    json.NewEncoder(w).Encode(events)
 }
